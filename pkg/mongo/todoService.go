@@ -1,8 +1,6 @@
 package mongo
 
 import (
-	"encoding/json"
-
 	"github.com/425devon/go_todo_api/pkg/models"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -54,34 +52,26 @@ func (s *TodoService) GetListByID(_id string) (models.TodoList, error) {
 
 func (s *TodoService) GetTaskByID(_id string) (models.Task, error) {
 	var task models.Task
-	taskID := bson.ObjectIdHex(_id)
-	pipe := s.collection.Pipe([]bson.M{
-		{"$match": bson.M{
-			"tasks._id": taskID,
-		}},
-	})
-	resp := bson.M{}
-	err := pipe.One(&resp)
-	if err != nil {
-		return task, err
+	query := bson.M{
+		"tasks._id": bson.ObjectIdHex(_id),
 	}
-
-	tasks := resp["tasks"].([]interface{})
-	singleTask := tasks[0]
-
-	tsk, err := json.Marshal(singleTask)
-	if err != nil {
-		return task, err
-	}
-
-	err = json.Unmarshal(tsk, &task)
-	if err != nil {
-		return task, err
-	}
-
+	err := s.collection.Find(query).One(&task)
 	return task, err
 }
 
-// func (s *TodoService) CompleteTask(id string) error {
+func (s *TodoService) CompleteTask(_id string) (models.Task, error) {
+	var task models.Task
+	query := bson.M{
+		"tasks._id": bson.ObjectIdHex(_id),
+	}
 
-// }
+	update := bson.M{"$set": bson.M{"completed": true}}
+
+	err := s.collection.Update(query, update)
+	if err != nil {
+		return task, err
+	}
+	err = s.collection.Find(query).One(&task)
+
+	return task, err
+}

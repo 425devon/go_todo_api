@@ -19,6 +19,7 @@ func Test_todoService(t *testing.T) {
 	t.Run("GetListByID", getListByID_should_get_list_by_ID)
 	t.Run("CreateTask", createTask_should_create_task_and_add_to_list)
 	t.Run("GetTaskByID", getTaskByID_should_find_task_by_id)
+	t.Run("completeTask", completeTask_should_changed_completed_to_true)
 }
 
 func createList_should_create_list_and_return_id(t *testing.T) {
@@ -129,6 +130,37 @@ func getTaskByID_should_find_task_by_id(t *testing.T) {
 	}
 	if tsk.Completed != false {
 		t.Errorf("Expected Completed status to be `false` got: `%v`", tsk.Completed)
+	}
+}
+
+func completeTask_should_changed_completed_to_true(t *testing.T) {
+	//Arrange
+	session := newSession()
+	todoService := newTodoService(session)
+	defer dropAndCloseDB(session)
+
+	todoList := models.TodoList{
+		Name:        "test_list",
+		Description: "this list is for testing",
+		Tasks:       nil,
+	}
+
+	task := models.Task{
+		Name: "test_task",
+	}
+
+	//Act
+	uid, _ := todoService.CreateList(&todoList)
+	list, _ := todoService.GetListByID(uid)
+	tid, _ := todoService.CreateTask(&list, &task)
+	tsk, err := todoService.CompleteTask(tid)
+
+	//Assert
+	if err != nil {
+		t.Errorf("Nope! `%s`", err)
+	}
+	if tsk.Completed != true {
+		t.Errorf("Excpected completed status to be: `true` got: `%v`", tsk.Completed)
 	}
 }
 
