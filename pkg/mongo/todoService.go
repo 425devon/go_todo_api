@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"encoding/json"
+
 	"github.com/425devon/go_todo_api/pkg/models"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -50,16 +52,36 @@ func (s *TodoService) GetListByID(_id string) (models.TodoList, error) {
 	return todoList, err
 }
 
-func (s *TodoService) GetTaskByID(tid string) (models.Task, error) {
+func (s *TodoService) GetTaskByID(_id string) (models.Task, error) {
 	var task models.Task
-	//listID = bson.ObjectIdHex(lid)
-	taskID := bson.ObjectIdHex(tid)
+	taskID := bson.ObjectIdHex(_id)
 	pipe := s.collection.Pipe([]bson.M{
 		{"$match": bson.M{
 			"tasks._id": taskID,
 		}},
 	})
-	resp := []bson.M{}
-	err := pipe.All(&resp)
+	resp := bson.M{}
+	err := pipe.One(&resp)
+	if err != nil {
+		return task, err
+	}
+
+	tasks := resp["tasks"].([]interface{})
+	singleTask := tasks[0]
+
+	tsk, err := json.Marshal(singleTask)
+	if err != nil {
+		return task, err
+	}
+
+	err = json.Unmarshal(tsk, &task)
+	if err != nil {
+		return task, err
+	}
+
 	return task, err
 }
+
+// func (s *TodoService) CompleteTask(id string) error {
+
+// }
