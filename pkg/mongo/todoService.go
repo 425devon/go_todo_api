@@ -12,6 +12,7 @@ type TodoService struct {
 
 func todoIndex() mgo.Index {
 	return mgo.Index{
+		Key:        []string{"name"},
 		Unique:     true,
 		DropDups:   true,
 		Background: true,
@@ -30,7 +31,7 @@ func (s *TodoService) CreateList(list *models.TodoList) (_id string, err error) 
 	return list.ID.Hex(), s.collection.Insert(&list)
 }
 
-func (s *TodoService) CreateTask(list *models.TodoList, task *models.Task) (id string, err error) {
+func (s *TodoService) CreateTask(list *models.TodoList, task *models.Task) (_id string, err error) {
 	task.ID = bson.NewObjectId()
 	task.Completed = false
 	l, err := s.GetListByID(list.ID.Hex())
@@ -38,9 +39,6 @@ func (s *TodoService) CreateTask(list *models.TodoList, task *models.Task) (id s
 		return "", err
 	}
 	l.Tasks = append(l.Tasks, *task)
-
-	// pretty, _ := json.Marshal(l)
-	// fmt.Println(string(pretty))
 	return task.ID.Hex(), s.collection.UpdateId(l.ID, &l)
 }
 
@@ -59,7 +57,7 @@ func (s *TodoService) GetTaskByID(_id string) (models.Task, error) {
 	return task, err
 }
 
-func (s *TodoService) CompleteTask(_id string) (models.Task, error) {
+func (s *TodoService) CompleteTask(_id string) (*models.Task, error) {
 	var task models.Task
 	query := bson.M{
 		"tasks._id": bson.ObjectIdHex(_id),
@@ -69,9 +67,22 @@ func (s *TodoService) CompleteTask(_id string) (models.Task, error) {
 
 	err := s.collection.Update(query, update)
 	if err != nil {
-		return task, err
+		return nil, err
 	}
 	err = s.collection.Find(query).One(&task)
 
-	return task, err
+	return &task, err
+}
+
+func (s *TodoService) DeleteListByID(_id string) error {
+	err := s.collection.RemoveId(bson.ObjectIdHex(_id))
+	return err
+}
+
+func (s *TodoService) DeleteTaskByID(_id string) error {
+	query := bson.M{
+		"tasks._id": bson.ObjectIdHex(_id),
+	}
+	err := s.collection.Remove(query)
+	return err
 }
