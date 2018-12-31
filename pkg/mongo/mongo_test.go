@@ -102,6 +102,7 @@ func createTask_should_create_task_and_add_to_list(t *testing.T) {
 	uid, _ := todoService.CreateList(&todoList)
 	list, _ := todoService.GetListByID(uid)
 	tid, err := todoService.CreateTask(&list, &task)
+	_, err2 := todoService.CreateTask(&list, &task)
 
 	//Assert
 	if err != nil {
@@ -109,6 +110,9 @@ func createTask_should_create_task_and_add_to_list(t *testing.T) {
 	}
 	if len(tid) == 0 {
 		t.Errorf("Expected Task ID, Got: `%s`", tid)
+	}
+	if err2 == nil {
+		t.Errorf("Duplicate entries should not be allowed: `%s`", err2)
 	}
 }
 

@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"log"
+
 	mgo "gopkg.in/mgo.v2"
 )
 
@@ -34,5 +36,6 @@ func (s *Session) DropDatabase(db string) error {
 	if s.session != nil {
 		s.session.DB(db).DropDatabase()
 	}
+	log.Printf("Dropping `%s`", db)
 	return nil
 }

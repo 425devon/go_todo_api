@@ -57,6 +57,13 @@ func (s *TodoService) GetTaskByID(_id string) (models.Task, error) {
 	return task, err
 }
 
+//GetAllLists stil needs in test
+func (s *TodoService) GetAllLists() ([]models.TodoList, error) {
+	var lists []models.TodoList
+	err := s.collection.Find(bson.M{}).All(&lists)
+	return lists, err
+}
+
 func (s *TodoService) CompleteTask(_id string) (*models.Task, error) {
 	var task models.Task
 	query := bson.M{
@@ -79,6 +86,7 @@ func (s *TodoService) DeleteListByID(_id string) error {
 	return err
 }
 
+//DeleteTaskByID still needs int test
 func (s *TodoService) DeleteTaskByID(_id string) error {
 	query := bson.M{
 		"tasks._id": bson.ObjectIdHex(_id),
