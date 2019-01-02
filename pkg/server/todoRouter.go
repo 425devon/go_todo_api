@@ -21,6 +21,7 @@ func NewTodoRouter(s *mongo.TodoService, router *mux.Router) *mux.Router {
 	router.HandleFunc("/lists", todoRouter.getAllListsHandler).Methods("GET")
 	router.HandleFunc("/lists", todoRouter.createListHandler).Methods("POST")
 	router.HandleFunc("/list/{id}/tasks", todoRouter.createTaskHandler).Methods("POST")
+	router.HandleFunc("/list/{id}", todoRouter.getListByIDHandler).Methods("GET")
 	return router
 }
 
@@ -85,6 +86,18 @@ func (tr *todoRouter) getListByIDHandler(w http.ResponseWriter, r *http.Request)
 	}
 	Json(w, http.StatusOK, list)
 }
+
+func (tr *todoRouter) getTaskByIDHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	//listID := vars["listID"]
+	taskID := vars["taskID"]
+	task, err := tr.todoService.GetTaskByID(taskID)
+	if err != nil {
+		Error(w, http.StatusInternalServerError, err.Error())
+	}
+	Json(w, http.StatusOK, task)
+}
+
 func decodeList(r *http.Request) (*models.TodoList, error) {
 	var list models.TodoList
 	if r.Body == nil {
