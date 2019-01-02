@@ -22,6 +22,10 @@ func NewTodoRouter(s *mongo.TodoService, router *mux.Router) *mux.Router {
 	router.HandleFunc("/lists", todoRouter.createListHandler).Methods("POST")
 	router.HandleFunc("/list/{id}/tasks", todoRouter.createTaskHandler).Methods("POST")
 	router.HandleFunc("/list/{id}", todoRouter.getListByIDHandler).Methods("GET")
+	router.HandleFunc("/list/{listID}/tasks/{taskID}", todoRouter.getTaskByIDHandler).Methods("GET")
+	router.HandleFunc("/list/{listID}/tasks/{taskID}", todoRouter.completeTaskHandler).Methods("PUT")
+	router.HandleFunc("/list/{id}", todoRouter.deleteListByIDHandler).Methods("DELETE")
+	router.HandleFunc("/list/{listID}/tasks/{taskID}", todoRouter.deleteTaskByIDHandler).Methods("DELETE")
 	return router
 }
 
@@ -83,19 +87,56 @@ func (tr *todoRouter) getListByIDHandler(w http.ResponseWriter, r *http.Request)
 	list, err := tr.todoService.GetListByID(id)
 	if err != nil {
 		Error(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 	Json(w, http.StatusOK, list)
 }
 
 func (tr *todoRouter) getTaskByIDHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	//listID := vars["listID"]
+	listID := vars["listID"]
 	taskID := vars["taskID"]
-	task, err := tr.todoService.GetTaskByID(taskID)
+	task, err := tr.todoService.GetTaskByID(listID, taskID)
 	if err != nil {
 		Error(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 	Json(w, http.StatusOK, task)
+}
+
+func (tr *todoRouter) completeTaskHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	listID := vars["listID"]
+	taskID := vars["taskID"]
+	_, err := tr.todoService.CompleteTask(listID, taskID)
+	if err != nil {
+		Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	Json(w, http.StatusOK, err)
+}
+
+func (tr *todoRouter) deleteListByIDHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	err := tr.todoService.DeleteListByID(id)
+	if err != nil {
+		Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	Json(w, http.StatusOK, err)
+}
+
+func (tr *todoRouter) deleteTaskByIDHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	listID := vars["listID"]
+	taskID := vars["taskID"]
+	err := tr.todoService.DeleteTaskByID(listID, taskID)
+	if err != nil {
+		Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	Json(w, http.StatusOK, err)
 }
 
 func decodeList(r *http.Request) (*models.TodoList, error) {
