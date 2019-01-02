@@ -136,11 +136,14 @@ func getTaskByID_should_find_task_by_id(t *testing.T) {
 	uid, _ := todoService.CreateList(&todoList)
 	list, _ := todoService.GetListByID(uid)
 	tid, _ := todoService.CreateTask(&list, &task)
-	tsk, err := todoService.GetTaskByID(tid)
+	tsk, err := todoService.GetTaskByID(uid, tid)
 
 	//Assert
 	if err != nil {
 		t.Errorf("Unable to retrieve task: `%s`", err)
+	}
+	if tsk.Name != "test_task" {
+		t.Errorf("Incorrect name expected: `test_task` got: `%s`", tsk.Name)
 	}
 	if tsk.Completed != false {
 		t.Errorf("Expected Completed status to be `false` got: `%v`", tsk.Completed)
@@ -167,7 +170,7 @@ func completeTask_should_changed_completed_to_true(t *testing.T) {
 	uid, _ := todoService.CreateList(&todoList)
 	list, _ := todoService.GetListByID(uid)
 	tid, _ := todoService.CreateTask(&list, &task)
-	tsk, err := todoService.CompleteTask(tid)
+	tsk, err := todoService.CompleteTask(uid, tid)
 
 	//Assert
 	if err != nil {
@@ -175,6 +178,9 @@ func completeTask_should_changed_completed_to_true(t *testing.T) {
 	}
 	if tsk.Completed != true {
 		t.Errorf("Excpected completed status to be: `true` got: `%v`", tsk.Completed)
+	}
+	if tsk.Name != "test_task" {
+		t.Errorf("Name does not match! expected: `test_task` got: `%s`", tsk.Name)
 	}
 }
 
