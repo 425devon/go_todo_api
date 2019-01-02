@@ -26,9 +26,10 @@ func main() {
 		sig := <-gracefulStop
 		fmt.Printf("\ncaught sig: %+v\n", sig)
 		//dropping db during testing
-		fmt.Println("Dropping and closing db")
-		ms.DropDatabase("go_todo_server")
+		// fmt.Println("Dropping and closing db")
+		// ms.DropDatabase("go_todo_server")
 		//
+		fmt.Println("closing db")
 		ms.Close()
 		time.Sleep(2 * time.Second)
 		os.Exit(0)
